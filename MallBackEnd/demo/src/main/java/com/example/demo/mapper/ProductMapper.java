@@ -4,6 +4,7 @@ package com.example.demo.mapper;
 import com.example.demo.pojo.dto.Product;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -24,7 +25,8 @@ public interface ProductMapper {
 
     // 查询单个产品
     Product selectById(@Param("id") Long id);
-
+    @Update("UPDATE products SET stock = stock - #{quantity} WHERE id = #{id}")
+    int updateStock(@Param("id") Long id, @Param("quantity") int quantity);
     // 查询推荐产品
     List<Product> selectFeaturedProducts(@Param("limit") int limit);
 }

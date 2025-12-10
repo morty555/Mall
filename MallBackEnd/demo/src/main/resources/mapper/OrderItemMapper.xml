@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.OrderItemMapper">
+
+    <insert id="insertOrderItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_items (order_id, product_id, product_name, price, quantity)
+        VALUES (#{orderId}, #{productId}, #{productName}, #{price}, #{quantity})
+    </insert>
+    <select id="selectOrderItemsByOrderId" resultType="com.example.demo.pojo.entity.OrderItem">
+        SELECT * FROM order_items WHERE order_id = #{orderId}
+    </select>
+
+</mapper>

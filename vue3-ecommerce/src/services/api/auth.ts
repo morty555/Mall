@@ -3,9 +3,10 @@ import axios from '../axios';
 const API_URL = '/api/auth';
 
 export interface LoginCredentials {
-  username: string;
+  email: string;
   password: string;
 }
+
 
 export interface RegisterData {
   username: string;
@@ -15,9 +16,13 @@ export interface RegisterData {
 
 export const authService = {
   login(credentials: LoginCredentials) {
-    return axios.post(`${API_URL}/login`, credentials)
-      .then(res => res.data);
-  },
+  return axios.post(`${API_URL}/login`, credentials)
+    .then(res => {
+      // 保存登录用户信息和 token
+      localStorage.setItem('user', JSON.stringify(res.data));
+      return res.data;
+    });
+},
 
   register(userData: RegisterData) {
     return axios.post(`${API_URL}/register`, userData)

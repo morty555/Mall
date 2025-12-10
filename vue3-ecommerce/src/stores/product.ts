@@ -41,7 +41,7 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
 
     try {
-      const response = await productApi.fetchProducts(1, 10, { featured: true });
+      const response = await productApi.fetchProducts(1, 20, { featured: true });
       products.value = response.data; // ⭐ 同样 data
       return response.data;
     } catch (err) {

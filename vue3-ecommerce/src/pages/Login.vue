@@ -32,16 +32,11 @@ export default defineComponent({
 
     const handleLogin = async () => {
       try {
-        await userStore.login(form.value);
-        
-        // 登录成功提示
+        await userStore.login(form.value); // 调用 store login，自动存 localStorage
         ElMessage.success('登录成功，欢迎回来！');
-
-        router.push('/'); 
+        router.push('/'); // 登录成功跳主页
       } catch (error) {
         console.error('登录失败:', error);
-
-        // 登录失败提示
         ElMessage.error('登录失败，请检查账号或密码');
       }
     };
@@ -53,11 +48,13 @@ export default defineComponent({
     return {
       form,
       handleLogin,
-      goToRegister
+      goToRegister,
+      userStore // 注意：返回 store 方便模板中使用
     };
   }
 });
 </script>
+
 
 
 <style scoped>
