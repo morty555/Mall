@@ -3,10 +3,11 @@
     <el-input
       v-model="searchQuery"
       placeholder="Search products"
-      @input="onSearchChange"
+      @input="onSearch"
       clearable
+      style="width: 300px; margin-bottom: 20px;"
     />
-    <el-select v-model="selectedCategory" @change="onCategoryChange" placeholder="Select category">
+    <el-select v-model="selectedCategory" @change="onFilterCategory" placeholder="Select category" style="margin-left: 20px;">
       <el-option
         v-for="category in categories"
         :key="category.id"
@@ -21,51 +22,55 @@
       </el-col>
     </el-row>
 
-    <Pagination
-      :current-page="currentPage"
+    <!-- 分页 -->
+    <el-pagination
+      background
+      layout="prev, pager, next"
       :page-size="pageSize"
+      :current-page="currentPage"
       :total="totalProducts"
       @current-change="handlePageChange"
+      style="margin-top: 20px; text-align: center;"
     />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
-import { useProductStore } from '@/stores/product';
 import ProductCard from '@/components/product/ProductCard.vue';
-import Pagination from '@/components/common/Pagination.vue';
+import { productApi } from '@/services/api/product'; // 你的 axios api 文件
 
 export default defineComponent({
-  components: {
-    ProductCard,
-    Pagination,
-  },
+  components: { ProductCard },
   setup() {
-    const productStore = useProductStore();
     const searchQuery = ref('');
     const selectedCategory = ref<number | null>(null);
     const currentPage = ref(1);
     const pageSize = ref(10);
     const totalProducts = ref(0);
     const products = ref<any[]>([]);
-    const categories = ref<any[]>([]); // 如果你有分类数据，可以在 mounted 里加载
+    const categories = ref<{ id: number; name: string }[]>([
+      { id: 1, name: 'Phone' },
+      { id: 2, name: 'Laptop' },
+      { id: 3, name: 'Tablet' },
+      { id: 4, name: 'Accessory' },
+    ]);
 
     const fetchProducts = async () => {
       try {
-        const response = await productStore.fetchProducts({
-          search: searchQuery.value || undefined,
-          categoryId: selectedCategory.value || undefined,
-          page: currentPage.value,
-          size: pageSize.value,
-        });
-
-        // 后端返回的结构：对象数组或者带分页对象
-        // 假设后端返回 { data: [...], total: number }
-        products.value = response.data || response; 
-        totalProducts.value = response.total ?? products.value.length;
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
+        const response = await productApi.fetchProducts(
+          currentPage.value,
+          pageSize.value,
+          {
+            search: searchQuery.value,
+            category: selectedCategory.value,
+          }
+        );
+        // 后端返回格式假设为 { data: [..], total: n }
+        products.value = response.data;
+        totalProducts.value = response.total;
+      } catch (err) {
+        console.error('Failed to fetch products', err);
       }
     };
 
@@ -74,20 +79,18 @@ export default defineComponent({
       fetchProducts();
     };
 
-    const onSearchChange = () => {
-      currentPage.value = 1; // 搜索时重置到第一页
+    const onSearch = () => {
+      currentPage.value = 1; // 搜索时回到第一页
       fetchProducts();
     };
 
-    const onCategoryChange = () => {
-      currentPage.value = 1; // 分类改变时重置到第一页
+    const onFilterCategory = () => {
+      currentPage.value = 1; // 分类筛选时回到第一页
       fetchProducts();
     };
 
     onMounted(() => {
       fetchProducts();
-      // 如果你有分类接口，可以在这里加载 categories
-      // categories.value = await productStore.fetchCategories();
     });
 
     return {
@@ -100,8 +103,8 @@ export default defineComponent({
       categories,
       fetchProducts,
       handlePageChange,
-      onSearchChange,
-      onCategoryChange,
+      onSearch,
+      onFilterCategory,
     };
   },
 });
