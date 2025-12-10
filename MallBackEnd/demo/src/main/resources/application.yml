@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: demo-app
+
+  # 启用多环境配置
+  profiles:
+    active: dev
+
+  # JSON 序列化时间格式（可选）
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+# 日志配置（公共）
+logging:
+  level:
+    root: info
+sky:
+  jwt:
+    user-secret-key: iteheima-iteheima-iteheima-iteheima
+    user-token-name: authentication
+    user-ttl: 7200000
