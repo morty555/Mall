@@ -1,28 +1,46 @@
 <template>
   <el-card class="product-card" :body-style="{ padding: '20px' }">
-    <img :src="product.image" alt="Product Image" class="product-image" />
+    <img
+      :src="product.image || placeholderImage"
+      alt="Product Image"
+      class="product-image"
+    />
     <div class="product-info">
-      <h3 class="product-title">{{ product.name }}</h3>
-      <p class="product-description">{{ product.description }}</p>
+      <h3 class="product-title">{{ product.name || 'Unnamed Product' }}</h3>
+      <p class="product-description">
+        {{ product.description || 'No description available.' }}
+      </p>
       <div class="product-price">
-        <span>Price: {{ product.price | currency }}</span>
+        <span>Price: ${{ (product.price || 0).toFixed(2) }}</span>
       </div>
-      <el-button type="primary" @click="addToCart">Add to Cart</el-button>
+      <el-button
+        type="primary"
+        @click="addToCart"
+        :disabled="added || !(product.id > 0)"
+      >
+        {{ added ? 'Added to Cart' : 'Add to Cart' }}
+      </el-button>
     </div>
   </el-card>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useCartStore, CartItem } from '@/stores/cart';
+import { ElMessage } from 'element-plus';
 
 export interface Product {
   id: number;
   name: string;
   price: number;
-  quantity?: number; // 可选，默认 1
   description?: string;
   image?: string;
+  stock?: number;
+  categoryId?: number | null;
+  specifications?: string | null;
+  featured?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default defineComponent({
@@ -35,18 +53,42 @@ export default defineComponent({
   },
   setup(props) {
     const cartStore = useCartStore();
+    const placeholderImage = '/placeholder.png';
+    const added = ref(false); // 控制按钮文字和状态
 
     const addToCart = () => {
+      if (!(props.product.id > 0)) {
+        console.warn('Product ID missing, cannot add to cart');
+        return;
+      }
+
       const item: CartItem = {
         id: props.product.id,
         name: props.product.name,
         price: props.product.price,
         quantity: 1,
       };
+
       cartStore.addItem(item);
+
+      added.value = true; // 更新按钮状态
+      ElMessage({
+        message: `${props.product.name} 已添加到购物车`,
+        type: 'success',
+        duration: 1500,
+      });
+
+      // 2秒后恢复按钮状态，可按需修改
+      setTimeout(() => {
+        added.value = false;
+      }, 2000);
     };
 
-    return { addToCart };
+    return {
+      addToCart,
+      placeholderImage,
+      added,
+    };
   },
 });
 </script>
@@ -59,7 +101,9 @@ export default defineComponent({
 
 .product-image {
   width: 100%;
-  height: auto;
+  height: 200px;
+  object-fit: cover;
+  background-color: #f0f0f0;
 }
 
 .product-info {
@@ -74,10 +118,12 @@ export default defineComponent({
 .product-description {
   font-size: 1em;
   color: #666;
+  min-height: 40px;
 }
 
 .product-price {
   font-size: 1.2em;
-  color: #333;
+  color: #f56c6c;
+  margin: 10px 0;
 }
 </style>

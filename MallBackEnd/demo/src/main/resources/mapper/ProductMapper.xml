@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ProductMapper">
+
+    <select id="selectProducts" resultType="com.example.demo.pojo.dto.Product">
+        SELECT * FROM products
+        <where>
+            <if test="search != null and search != ''">
+                AND name LIKE CONCAT('%', #{search}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND category_id = #{categoryId}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countProducts" resultType="int">
+        SELECT COUNT(*) FROM products
+        <where>
+            <if test="search != null and search != ''">
+                AND name LIKE CONCAT('%', #{search}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND category_id = #{categoryId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultType="com.example.demo.pojo.dto.Product">
+        SELECT * FROM products WHERE id = #{id}
+    </select>
+
+    <select id="selectFeaturedProducts" resultType="com.example.demo.pojo.dto.Product">
+        SELECT * FROM products WHERE featured = TRUE ORDER BY created_at DESC LIMIT #{limit}
+    </select>
+
+</mapper>

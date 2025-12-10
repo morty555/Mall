@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an instance of axios
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, // Base URL from environment variables
+  baseURL: '/api', // Base URL from environment variables
   timeout: 10000, // Request timeout
 });
 
@@ -33,14 +33,12 @@ apiClient.interceptors.response.use(
 
 // API calls related to product management
 export const productApi = {
-  fetchProducts(page = 1, limit = 10, filters: Record<string, any> = {}) {
-    return apiClient.get('/products', {
-      params: {
-        page,
-        limit,
-        ...filters,
-      },
+   async fetchProducts(page = 1, limit = 10, filters: Record<string, any> = {}) {
+    const response = await apiClient.get('/products', {
+      params: { page, limit, ...filters },
     });
+    // 后端返回的是数组或对象数组，直接返回 data
+    return response.data; 
   },
 
   fetchProductById(productId: string | number) {

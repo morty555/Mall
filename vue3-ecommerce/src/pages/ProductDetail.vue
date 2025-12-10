@@ -26,6 +26,7 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useProductStore } from '@/stores/product';
 import ProductGallery from '@/components/product/ProductGallery.vue';
+import { useCartStore } from '@/stores/cart';
 
 export default defineComponent({
   components: {
@@ -35,17 +36,23 @@ export default defineComponent({
     const route = useRoute();
     const productStore = useProductStore();
     const product = ref(null);
-
+    const cartStore = useCartStore();
     const fetchProductDetail = async () => {
-      const productId = route.params.id;
-      product.value = await productStore.getProductDetail(productId);
+      const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
+      await productStore.fetchSingleProduct(id);
+      product.value = productStore.productDetails;
     };
 
-    const addToCart = () => {
+      const addToCart = () => {
       if (product.value) {
-        productStore.addToCart(product.value);
-      }
-    };
+       cartStore.addItem({
+      id: product.value.id,
+      name: product.value.name,
+      price: product.value.price,
+      quantity: 1
+    });
+  }
+};
 
     onMounted(() => {
       fetchProductDetail();

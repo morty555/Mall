@@ -20,23 +20,23 @@
     </el-table>
   </div>
 </template>
-
 <script lang="ts">
 import { defineComponent, onMounted } from 'vue';
 import { useOrderStore } from '@/stores/order';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   setup() {
+    const router = useRouter();
     const orderStore = useOrderStore();
     const orders = orderStore.orders;
 
     const fetchOrders = async () => {
-      await orderStore.fetchOrders();
+      await orderStore.fetchOrderHistory();
     };
 
     const viewOrderDetail = (orderId: number) => {
-      // 跳转到订单详情页面
-      // 这里可以使用 Vue Router 进行页面跳转
+      router.push(`/orders/${orderId}`); // 假设详情页路由是 /orders/:id
     };
 
     const getStatusType = (status: string) => {
@@ -52,9 +52,7 @@ export default defineComponent({
       }
     };
 
-    onMounted(() => {
-      fetchOrders();
-    });
+    onMounted(fetchOrders);
 
     return {
       orders,
@@ -64,9 +62,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-.orders {
-  padding: 20px;
-}
-</style>

@@ -3,10 +3,10 @@
     <el-input
       v-model="searchQuery"
       placeholder="Search products"
-      @input="fetchProducts"
+      @input="onSearchChange"
       clearable
     />
-    <el-select v-model="selectedCategory" @change="fetchProducts" placeholder="Select category">
+    <el-select v-model="selectedCategory" @change="onCategoryChange" placeholder="Select category">
       <el-option
         v-for="category in categories"
         :key="category.id"
@@ -14,11 +14,13 @@
         :value="category.id"
       />
     </el-select>
-    <el-row :gutter="20">
+
+    <el-row :gutter="20" style="margin-top: 20px;">
       <el-col v-for="product in products" :key="product.id" :span="6">
         <ProductCard :product="product" />
       </el-col>
     </el-row>
+
     <Pagination
       :current-page="currentPage"
       :page-size="pageSize"
@@ -42,21 +44,29 @@ export default defineComponent({
   setup() {
     const productStore = useProductStore();
     const searchQuery = ref('');
-    const selectedCategory = ref(null);
+    const selectedCategory = ref<number | null>(null);
     const currentPage = ref(1);
     const pageSize = ref(10);
     const totalProducts = ref(0);
-    const products = ref([]);
+    const products = ref<any[]>([]);
+    const categories = ref<any[]>([]); // 如果你有分类数据，可以在 mounted 里加载
 
     const fetchProducts = async () => {
-      const response = await productStore.fetchProducts({
-        search: searchQuery.value,
-        category: selectedCategory.value,
-        page: currentPage.value,
-        size: pageSize.value,
-      });
-      products.value = response.data;
-      totalProducts.value = response.total;
+      try {
+        const response = await productStore.fetchProducts({
+          search: searchQuery.value || undefined,
+          categoryId: selectedCategory.value || undefined,
+          page: currentPage.value,
+          size: pageSize.value,
+        });
+
+        // 后端返回的结构：对象数组或者带分页对象
+        // 假设后端返回 { data: [...], total: number }
+        products.value = response.data || response; 
+        totalProducts.value = response.total ?? products.value.length;
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      }
     };
 
     const handlePageChange = (page: number) => {
@@ -64,8 +74,20 @@ export default defineComponent({
       fetchProducts();
     };
 
+    const onSearchChange = () => {
+      currentPage.value = 1; // 搜索时重置到第一页
+      fetchProducts();
+    };
+
+    const onCategoryChange = () => {
+      currentPage.value = 1; // 分类改变时重置到第一页
+      fetchProducts();
+    };
+
     onMounted(() => {
       fetchProducts();
+      // 如果你有分类接口，可以在这里加载 categories
+      // categories.value = await productStore.fetchCategories();
     });
 
     return {
@@ -75,8 +97,11 @@ export default defineComponent({
       pageSize,
       totalProducts,
       products,
+      categories,
       fetchProducts,
       handlePageChange,
+      onSearchChange,
+      onCategoryChange,
     };
   },
 });
