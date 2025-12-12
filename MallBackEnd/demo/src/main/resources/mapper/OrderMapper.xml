@@ -27,5 +27,7 @@
         <collection property="items" ofType="com.example.demo.pojo.entity.OrderItem"
                     select="selectOrderItemsByOrderId" column="id"/>
     </resultMap>
-
+    <select id="selectOrderItemsByOrderId" resultType="com.example.demo.pojo.entity.OrderItem">
+        SELECT * FROM order_items WHERE order_id = #{orderId}
+    </select>
 </mapper>

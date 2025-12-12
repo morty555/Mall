@@ -4,7 +4,7 @@
     <el-table :data="orders" style="width: 100%">
       <el-table-column prop="id" label="订单号" />
       <el-table-column prop="createdAt" label="创建时间" />
-      <el-table-column prop="total" label="总金额" />
+      <el-table-column prop="totalPrice" label="总金额" />
       <el-table-column label="状态">
         <template #default="scope">
           <el-tag :type="getStatusType(scope.row.status)">
@@ -20,31 +20,39 @@
     </el-table>
   </div>
 </template>
+
 <script lang="ts">
 import { defineComponent, onMounted } from 'vue';
 import { useOrderStore } from '@/stores/order';
+import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
   setup() {
     const router = useRouter();
     const orderStore = useOrderStore();
-    const orders = orderStore.orders;
+
+    // 必须使用 storeToRefs，否则不响应
+    const { orders } = storeToRefs(orderStore);
 
     const fetchOrders = async () => {
       await orderStore.fetchOrderHistory();
     };
 
     const viewOrderDetail = (orderId: number) => {
-      router.push(`/orders/${orderId}`); // 假设详情页路由是 /orders/:id
+      router.push(`/orders/${orderId}`);
     };
 
+    // 考虑到您的后端状态是 "pending" 等英文，这里进行了兼容性修改
     const getStatusType = (status: string) => {
       switch (status) {
+        case 'pending': // 兼容后端返回的 "pending"
         case '待发货':
           return 'warning';
+        case 'shipped': // 兼容可能的 "shipped"
         case '已发货':
           return 'success';
+        case 'cancelled': // 兼容可能的 "cancelled"
         case '已取消':
           return 'danger';
         default:
@@ -62,3 +70,7 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+/* 可以在这里添加您的样式 */
+</style>

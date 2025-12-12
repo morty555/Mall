@@ -19,7 +19,7 @@ export function fetchOrders(userId: number) {
 }
 
 export function getOrderDetail(orderId: number) {
-  return axios.get(`${API_BASE_URL}/detail`, { params: { orderId }});
+  return axios.get(`${API_BASE_URL}/list`, { params: { orderId }});
 }
 
 export function deleteOrder(orderId: number) {

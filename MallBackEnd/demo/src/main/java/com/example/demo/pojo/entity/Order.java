@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class Order {
@@ -15,5 +16,6 @@ public class Order {
     private String address;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<OrderItem> items;
     // getter/setter
 }

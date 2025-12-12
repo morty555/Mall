@@ -23,3 +23,6 @@ sky:
     user-secret-key: iteheima-iteheima-iteheima-iteheima
     user-token-name: authentication
     user-ttl: 7200000
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
