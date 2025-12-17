@@ -19,11 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -39,16 +35,6 @@ import static com.example.demo.constant.RedisConstant.LOGIN_CODE_TTL;
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
-    // 邮件协议
-    private static final String emailProtocol = "smtp";
-    // 发件人的SMTP服务器地址（普通QQ邮箱）
-    private static final String emailSMTPHost = "smtp.qq.com";
-    // 端口
-    private static final String emailPort = "465";
-    // 发件人邮箱地址
-    private static final String emailAccount = "1650550685@qq.com"; // 这个是普通QQ邮箱
-    // 发件人邮箱授权码
-    private static final String emailPassword = "tkaqdjcuxdhqdigf";
     @Autowired
     private UserMapper userMapper;
     @Resource

@@ -36,7 +36,6 @@ public class OrderController {
                 item.setQuantity(i.getQuantity());
                 return item;
             }).collect(Collectors.toList());
-
             Long orderId = orderService.createOrder(userId, items, address, phone);
 
             result.put("success", true);

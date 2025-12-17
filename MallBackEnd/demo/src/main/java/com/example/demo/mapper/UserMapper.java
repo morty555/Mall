@@ -17,5 +17,6 @@ public interface UserMapper {
     @Insert("insert into user(username,password,created_at,updated_at,status,email)"+"values"+"(#{username},#{password},#{createdAt},#{updatedAt},#{status},#{email})")
     void register(User user);
 
-
+    @Select("select * from user where id = #{userId}")
+    User selectById(Long userId);
 }

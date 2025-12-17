@@ -22,15 +22,18 @@ export const useUserStore = defineStore('user', () => {
       localStorage.setItem('token', token.value);
     }
   };
-
   const login = async (credentials: LoginCredentials) => {
-    const data = await authService.login(credentials);
+  const data = await authService.login(credentials);
 
-    user.value = data.user;
-    token.value = data.token;
-
-    saveToStorage(); // 保存到本地
+  user.value = {
+    id: data.id,
+    username: data.username
   };
+  token.value = data.token;
+
+  saveToStorage();
+};
+
 
   const register = async (userData: RegisterData) => {
     const data = await authService.register(userData);
