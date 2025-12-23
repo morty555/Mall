@@ -18,8 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
+@CrossOrigin
 @RequestMapping("/api")
 @RestController
 @Slf4j
@@ -79,5 +80,9 @@ public class UserController {
     }
 
 
-
+    // 返回所有客户（用户）
+    @GetMapping("customers")
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
 }

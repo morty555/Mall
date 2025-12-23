@@ -4,6 +4,7 @@ package com.example.demo.mapper;
 import com.example.demo.pojo.dto.Product;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
@@ -29,4 +30,7 @@ public interface ProductMapper {
     int updateStock(@Param("id") Long id, @Param("quantity") int quantity);
     // 查询推荐产品
     List<Product> selectFeaturedProducts(@Param("limit") int limit);
+
+    @Select("SELECT id, name, price, stock FROM products")
+    List<Product> selectAll();
 }

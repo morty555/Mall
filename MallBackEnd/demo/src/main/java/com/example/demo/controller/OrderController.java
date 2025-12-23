@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
+@CrossOrigin
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -48,12 +50,19 @@ public class OrderController {
         return result;
     }
 
-
-
-
     @GetMapping("/list")
     public List<Order> listOrders(@RequestParam Long userId) {
         return orderService.getOrdersByUserId(userId);
     }
 
+    @GetMapping
+    public List<Order> getAllOrders() {
+        return orderService.getAllOrders();
+    }
+
+    // 订单统计接口
+    @GetMapping("/statistics")
+    public Map<String, Object> getStatistics() {
+        return orderService.getOrderStatistics();
+    }
 }

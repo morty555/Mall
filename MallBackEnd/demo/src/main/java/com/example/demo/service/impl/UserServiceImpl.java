@@ -22,10 +22,7 @@ import org.springframework.util.DigestUtils;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.example.demo.constant.RedisConstant.LOGIN_CODE_KEY;
@@ -99,6 +96,11 @@ public class UserServiceImpl implements UserService {
 
 
         return user;
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userMapper.selectAllUsers();
     }
 
 

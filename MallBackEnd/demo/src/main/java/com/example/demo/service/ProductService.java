@@ -11,4 +11,6 @@ public interface ProductService {
     Product getProductById(Long id);
 
     List<Product> getFeaturedProducts(int limit);
+
+    List<Product> getAllProducts();
 }

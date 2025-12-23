@@ -16,7 +16,10 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -77,5 +80,21 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> getOrdersByUserId(Long userId) {
         return orderMapper.selectOrdersByUserId(userId);
+    }
+
+    @Override
+    public List<Order> getAllOrders() {
+        return orderMapper.selectAllOrders();
+    }
+
+    @Override
+    public Map<String, Object> getOrderStatistics() {
+        Integer orderCount = orderMapper.countOrders();
+        BigDecimal totalSales = orderMapper.sumTotalPrice();
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("orderCount", orderCount);
+        map.put("totalSales", totalSales);
+        return map;
     }
 }

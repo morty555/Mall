@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>ToB 后台管理系统</title>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    h2 { margin-top: 40px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #f5f5f5; }
+    button { padding: 5px 10px; margin-bottom: 10px; }
+    .box { border: 1px solid #ddd; padding: 15px; margin-top: 10px; }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <!-- 商品 / 库存管理 -->
+  <h2>📦 商品库存管理</h2>
+  <button @click="loadProducts">查询商品</button>
+
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>商品名</th>
+      <th>价格</th>
+      <th>库存</th>
+    </tr>
+    <tr v-for="p in products" :key="p.id">
+      <td>{{ p.id }}</td>
+      <td>{{ p.name }}</td>
+      <td>{{ p.price }}</td>
+      <td>{{ p.stock }}</td>
+    </tr>
+  </table>
+
+  <!-- 订单管理 -->
+  <h2>📄 订单管理</h2>
+  <button @click="loadOrders">查询订单</button>
+
+  <table>
+    <tr>
+      <th>订单ID</th>
+      <th>用户ID</th>
+      <th>总金额</th>
+      <th>状态</th>
+      <th>电话</th>
+      <th>地址</th>
+      <th>创建时间</th>
+    </tr>
+    <tr v-for="o in orders" :key="o.id">
+      <td>{{ o.id }}</td>
+      <td>{{ o.userId }}</td>
+      <td>{{ o.totalPrice }}</td>
+      <td>{{ o.status }}</td>
+      <td>{{ o.phone }}</td>
+      <td>{{ o.address }}</td>
+      <td>{{ formatDate(o.createdAt) }}</td>
+    </tr>
+  </table>
+
+  <!-- 销售统计 -->
+  <h2>📊 销售统计</h2>
+  <button @click="loadStatistics">刷新统计</button>
+
+  <div class="box">
+    <p>订单总数：{{ statistics.orderCount }}</p>
+    <p>销售总额：{{ statistics.totalSales }}</p>
+  </div>
+
+  <!-- 客户管理 -->
+  <h2>👤 客户管理</h2>
+  <button @click="loadCustomers">查询客户</button>
+
+  <table>
+    <tr>
+      <th>客户ID</th>
+      <th>姓名</th>
+      <th>邮箱</th>
+    </tr>
+    <tr v-for="c in customers" :key="c.id">
+      <td>{{ c.id }}</td>
+      <td>{{ c.username }}</td>
+      <td>{{ c.email }}</td>
+    </tr>
+  </table>
+
+  <!-- 客户行为日志 -->
+  <h2>🧾 客户行为日志</h2>
+  <button @click="loadLogs">查询日志</button>
+
+  <table>
+    <tr>
+      <th>客户ID</th>
+      <th>行为</th>
+      <th>商品ID</th>
+      <th>时间</th>
+    </tr>
+    <tr v-for="l in logs" :key="l.id">
+      <td>{{ l.id }}</td>
+      <td>{{ l.action }}</td>
+      <td>{{ l.productId }}</td>
+      <td>{{ formatDate(l.time) }}</td>
+    </tr>
+  </table>
+
+</div>
+
+<script>
+const { createApp } = Vue
+
+createApp({
+  data() {
+    return {
+      products: [],
+      orders: [],
+      statistics: {},
+      customers: [],
+      logs: []
+    }
+  },
+  methods: {
+    // 商品库存
+    loadProducts() {
+      axios.get('http://localhost:8080/api/products/AllProducts')
+        .then(res => this.products = res.data.list || res.data)
+        .catch(err => console.error(err))
+    },
+    // 订单管理
+    loadOrders() {
+      axios.get('http://localhost:8080/api/orders')
+        .then(res => this.orders = res.data)
+        .catch(err => console.error(err))
+    },
+    // 销售统计
+    loadStatistics() {
+      axios.get('http://localhost:8080/api/orders/statistics')
+        .then(res => this.statistics = res.data)
+        .catch(err => console.error(err))
+    },
+    // 客户管理
+    loadCustomers() {
+      axios.get('http://localhost:8080/api/customers')
+        .then(res => this.customers = res.data)
+        .catch(err => console.error(err))
+    },
+    // 客户日志
+    loadLogs() {
+      axios.get('http://localhost:8080/api/customers/logs')
+        .then(res => this.logs = res.data)
+        .catch(err => console.error(err))
+    },
+    // 格式化时间
+    formatDate(datetimeStr) {
+      if (!datetimeStr) return ''
+      const d = new Date(datetimeStr)
+      return d.toLocaleString()
+    }
+  }
+}).mount('#app')
+</script>
+
+</body>
+</html>

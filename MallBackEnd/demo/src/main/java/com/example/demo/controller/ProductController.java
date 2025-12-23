@@ -36,4 +36,10 @@ public class ProductController {
     public List<Product> getFeaturedProducts(@RequestParam(defaultValue = "10") int limit) {
         return productService.getFeaturedProducts(limit);
     }
+
+    // 查询所有商品
+    @GetMapping("/AllProducts")
+    public List<Product> getProducts() {
+        return productService.getAllProducts();
+    }
 }

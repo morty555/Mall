@@ -37,5 +37,10 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getFeaturedProducts(int limit) {
         return productMapper.selectFeaturedProducts(limit);
     }
+
+    @Override
+    public List<Product> getAllProducts() {
+        return productMapper.selectAll();
+    }
 }
 
