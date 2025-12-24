@@ -2,10 +2,7 @@ package com.example.demo.mapper;
 
 
 import com.example.demo.pojo.dto.Product;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -31,6 +28,29 @@ public interface ProductMapper {
     // 查询推荐产品
     List<Product> selectFeaturedProducts(@Param("limit") int limit);
 
-    @Select("SELECT id, name, price, stock FROM products")
+    @Select("SELECT id, name, image,price, stock FROM products")
     List<Product> selectAll();
+
+    @Delete("DELETE FROM products WHERE id = #{id}")
+    void deleteById(Long id);
+
+
+
+    @Update("""
+    UPDATE products
+    SET
+        name = #{name},
+        price = #{price},
+        image = #{image},
+        stock = #{stock},
+        updated_at = NOW()
+    WHERE id = #{id}
+""")
+    void update(Product product);
+
+    @Insert("""
+        INSERT INTO products(name, price, stock)
+        VALUES(#{name}, #{price}, #{stock})
+    """)
+    void insert(Product product);
 }

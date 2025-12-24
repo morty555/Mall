@@ -13,4 +13,10 @@ public interface ProductService {
     List<Product> getFeaturedProducts(int limit);
 
     List<Product> getAllProducts();
+
+    void deleteProductById(Long id);
+
+    void updateProduct(Product product);
+
+    void addProduct(Product product);
 }

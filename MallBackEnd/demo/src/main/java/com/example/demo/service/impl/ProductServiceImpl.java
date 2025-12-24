@@ -42,5 +42,23 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getAllProducts() {
         return productMapper.selectAll();
     }
+
+    @Override
+    public void deleteProductById(Long id) {
+        productMapper.deleteById(id);
+    }
+
+    @Override
+    public void updateProduct(Product product) {
+        if (product.getId() == null) {
+            throw new RuntimeException("商品ID不能为空");
+        }
+        productMapper.update(product);
+    }
+
+    @Override
+    public void addProduct(Product product) {
+        productMapper.insert(product);
+    }
 }
 

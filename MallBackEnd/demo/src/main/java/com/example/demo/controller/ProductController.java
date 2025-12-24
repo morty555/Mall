@@ -42,4 +42,21 @@ public class ProductController {
     public List<Product> getProducts() {
         return productService.getAllProducts();
     }
+    // 删除商品
+    @DeleteMapping("/{id}")
+    public void deleteProduct(@PathVariable Long id) {
+        productService.deleteProductById(id);
+    }
+
+    // 修改商品
+    @PutMapping("/update")
+    public void updateProduct(@RequestBody Product product) {
+        productService.updateProduct(product);
+    }
+    // ✅ 新增商品
+    @PostMapping("/add")
+    public String addProduct(@RequestBody Product product) {
+        productService.addProduct(product);
+        return "success";
+    }
 }
