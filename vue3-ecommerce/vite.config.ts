@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { createHtmlPlugin } from 'vite-plugin-html'
 
 export default defineConfig({
+  base: '/front2/',  // ✅ 这里设置打包基础路径
   plugins: [
     vue(),
     createHtmlPlugin({
@@ -21,7 +22,6 @@ export default defineConfig({
     })
   ],
 
-  // ---- 这里是你要加的位置 ----
   server: {
     port: 3000,
     open: true,
@@ -32,7 +32,6 @@ export default defineConfig({
       }
     }
   },
-  // ----------------------------------
 
   build: {
     outDir: 'dist',

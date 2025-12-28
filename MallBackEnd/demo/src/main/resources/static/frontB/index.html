@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>ToB 后台管理系统</title>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+  <style>
+    body { margin: 0; font-family: Arial; }
+    h2 { margin-top: 0; }
+
+    .layout { display: flex; height: 100vh; }
+
+    .sidebar {
+      width: 190px;
+      background: #2c3e50;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .menu-title {
+      color: #fff;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .sidebar button {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border: none;
+      background: #34495e;
+      color: white;
+      cursor: pointer;
+    }
+
+    .sidebar button:hover { background: #1abc9c; }
+
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th { background: #f5f5f5; }
+
+    .pagination { margin-top: 10px; }
+
+    button { padding: 5px 10px; margin: 3px; }
+
+    input { padding: 4px; width: 120px; margin: 0 5px; }
+
+    img { max-width: 60px; max-height: 60px; }
+
+    .edit-box {
+      border: 1px solid #aaa;
+      padding: 10px;
+      margin: 10px 0;
+      background: #fafafa;
+    }
+
+    .box {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+<div id="app" class="layout">
+
+  <!-- 左侧菜单 -->
+  <div class="sidebar">
+    <div class="menu-title">后台管理</div>
+    <button @click="currentModule='product'">📦 商品管理</button>
+    <button @click="currentModule='order'">📄 订单管理</button>
+    <button @click="currentModule='stat'">📊 销售统计</button>
+    <button @click="currentModule='customer'">👤 客户管理</button>
+    <button @click="currentModule='log'">🧾 行为日志</button>
+  </div>
+
+  <!-- 右侧内容 -->
+  <div class="content">
+
+    <!-- 商品管理 -->
+    <div v-show="currentModule==='product'">
+      <h2>📦 商品库存管理</h2>
+      <button @click="loadProducts">查询商品</button>
+
+      <div class="edit-box">
+        商品名 <input v-model="newProduct.name">
+        价格 <input type="number" v-model="newProduct.price">
+        库存 <input type="number" v-model="newProduct.stock">
+        <button @click="addProduct">新增</button>
+      </div>
+
+      <table>
+        <tr>
+          <th>ID</th><th>名称</th><th>价格</th><th>库存</th><th>图片</th>
+        </tr>
+        <tr v-for="p in productPageData" :key="p.id">
+          <td>{{p.id}}</td>
+          <td>{{p.name}}</td>
+          <td>{{p.price}}</td>
+          <td>{{p.stock}}</td>
+          <td><img v-if="p.imageUrl" :src="p.imageUrl"></td>
+        </tr>
+      </table>
+
+      <div class="pagination">
+        <button :disabled="productPage===1" @click="productPage--">上一页</button>
+        第 {{productPage}} / {{productTotalPages}} 页
+        <button :disabled="productPage===productTotalPages" @click="productPage++">下一页</button>
+      </div>
+    </div>
+
+    <!-- 订单管理（分页已恢复） -->
+    <div v-show="currentModule==='order'">
+      <h2>📄 订单管理</h2>
+      <button @click="loadOrders">查询订单</button>
+
+      <table>
+        <tr>
+          <th>ID</th><th>用户</th><th>金额</th><th>状态</th><th>时间</th>
+        </tr>
+        <tr v-for="o in orderPageData" :key="o.id">
+          <td>{{o.id}}</td>
+          <td>{{o.userId}}</td>
+          <td>{{o.totalPrice}}</td>
+          <td>{{o.status}}</td>
+          <td>{{formatDate(o.createdAt)}}</td>
+        </tr>
+      </table>
+
+      <div class="pagination">
+        <button :disabled="orderPage===1" @click="orderPage--">上一页</button>
+        第 {{orderPage}} / {{orderTotalPages}} 页
+        <button :disabled="orderPage===orderTotalPages" @click="orderPage++">下一页</button>
+      </div>
+    </div>
+
+    <!-- 销售统计 -->
+    <div v-show="currentModule==='stat'">
+      <h2>📊 销售统计</h2>
+      <button @click="loadStatistics">刷新统计</button>
+      <div class="box">
+        <div id="productPie" style="height:400px;"></div>
+        <div id="dailyLine" style="height:400px;margin-top:20px;"></div>
+      </div>
+    </div>
+
+    <!-- 客户管理（无分页，保持原样） -->
+    <div v-show="currentModule==='customer'">
+      <h2>👤 客户管理</h2>
+      <button @click="loadCustomers">查询客户</button>
+      <table>
+        <tr><th>ID</th><th>用户名</th><th>邮箱</th></tr>
+        <tr v-for="c in customers" :key="c.id">
+          <td>{{c.id}}</td>
+          <td>{{c.username}}</td>
+          <td>{{c.email}}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 行为日志（分页已恢复） -->
+    <div v-show="currentModule==='log'">
+      <h2>🧾 客户行为日志</h2>
+      <button @click="loadLogs">查询日志</button>
+
+      <table>
+        <tr><th>ID</th><th>行为</th><th>商品</th><th>时间</th></tr>
+        <tr v-for="l in logPageData" :key="l.id">
+          <td>{{l.id}}</td>
+          <td>{{l.action}}</td>
+          <td>{{l.productId}}</td>
+          <td>{{formatDate(l.time)}}</td>
+        </tr>
+      </table>
+
+      <div class="pagination">
+        <button :disabled="logPage===1" @click="logPage--">上一页</button>
+        第 {{logPage}} / {{logTotalPages}} 页
+        <button :disabled="logPage===logTotalPages" @click="logPage++">下一页</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue
+createApp({
+  data() {
+    return {
+      baseUrl: window.location.origin,
+      currentModule: 'product',
+
+      products: [], productPage: 1, productPageSize: 5,
+      orders: [], orderPage: 1, orderPageSize: 5,
+      customers: [],
+      logs: [], logPage: 1, logPageSize: 5,
+
+      productSales: [], dailySales: [],
+      newProduct: { name:'', price:null, stock:null }
+    }
+  },
+
+  computed:{
+    productTotalPages(){ return Math.ceil(this.products.length/this.productPageSize)||1 },
+    orderTotalPages(){ return Math.ceil(this.orders.length/this.orderPageSize)||1 },
+    logTotalPages(){ return Math.ceil(this.logs.length/this.logPageSize)||1 },
+
+    productPageData(){
+      const s=(this.productPage-1)*this.productPageSize
+      return this.products.slice(s,s+this.productPageSize)
+    },
+    orderPageData(){
+      const s=(this.orderPage-1)*this.orderPageSize
+      return this.orders.slice(s,s+this.orderPageSize)
+    },
+    logPageData(){
+      const s=(this.logPage-1)*this.logPageSize
+      return this.logs.slice(s,s+this.logPageSize)
+    }
+  },
+
+  watch:{
+    currentModule(val){
+      if(val==='stat'){
+        this.$nextTick(()=>{
+          this.renderProductPie()
+          this.renderDailyLine()
+        })
+      }
+    }
+  },
+
+  methods:{
+      addProduct(){
+      if(!this.newProduct.name || this.newProduct.price==null || this.newProduct.stock==null){
+        alert('请填写完整商品信息')
+        return
+      }
+
+      axios.post(this.baseUrl + '/api/products/add', this.newProduct)
+        .then(() => {
+          alert('新增成功')
+          this.newProduct = { name:'', price:null, stock:null }
+          this.loadProducts()
+        })
+        .catch(() => {
+          alert('新增失败')
+        })
+    },
+
+    loadProducts(){
+      axios.get(this.baseUrl+'/api/products/AllProducts')
+        .then(r=>this.products=r.data.list||r.data)
+    },
+    loadOrders(){
+      axios.get(this.baseUrl+'/api/orders').then(r=>{
+        this.orders=r.data
+        this.orderPage=1
+      })
+    },
+    loadCustomers(){
+      axios.get(this.baseUrl+'/api/customers').then(r=>this.customers=r.data)
+    },
+    loadLogs(){
+      axios.get(this.baseUrl+'/api/customers/logs').then(r=>{
+        this.logs=r.data
+        this.logPage=1
+      })
+    },
+    loadStatistics(){
+      axios.get(this.baseUrl+'/api/orders/product-sales')
+        .then(r=>{this.productSales=r.data;this.renderProductPie()})
+      axios.get(this.baseUrl+'/api/orders/daily-sales')
+        .then(r=>{this.dailySales=r.data;this.renderDailyLine()})
+    },
+    renderProductPie(){
+      echarts.init(document.getElementById('productPie')).setOption({
+        series:[{type:'pie',radius:'60%',data:this.productSales.map(i=>({name:i.productName,value:i.count}))}]
+      })
+    },
+    renderDailyLine(){
+      echarts.init(document.getElementById('dailyLine')).setOption({
+        xAxis:{type:'category',data:this.dailySales.map(i=>i.date)},
+        yAxis:{type:'value'},
+        series:[{type:'line',smooth:true,data:this.dailySales.map(i=>i.total)}]
+      })
+    },
+    formatDate(t){
+      return t?new Date(t).toLocaleString():''
+    }
+  }
+}).mount('#app')
+</script>
+
+</body>
+</html>
