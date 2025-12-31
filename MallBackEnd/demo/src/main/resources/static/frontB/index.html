@@ -10,8 +10,40 @@
 
   <style>
     body { margin: 0; font-family: Arial; }
-    h2 { margin-top: 0; }
 
+    /* ===== 登录页 ===== */
+    .login-wrapper {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #34495e;
+    }
+
+    .login-box {
+      width: 300px;
+      padding: 30px;
+      background: #fff;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .login-box input {
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 8px;
+      background: #1abc9c;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* ===== 后台布局 ===== */
     .layout { display: flex; height: 100vh; }
 
     .sidebar {
@@ -85,124 +117,177 @@
 </head>
 
 <body>
-<div id="app" class="layout">
+<div id="app">
 
-  <!-- 左侧菜单 -->
-  <div class="sidebar">
-    <div class="menu-title">后台管理</div>
-    <button @click="currentModule='product'">📦 商品管理</button>
-    <button @click="currentModule='order'">📄 订单管理</button>
-    <button @click="currentModule='stat'">📊 销售统计</button>
-    <button @click="currentModule='customer'">👤 客户管理</button>
-    <button @click="currentModule='log'">🧾 行为日志</button>
+  <!-- 登录页面 -->
+  <div v-if="!isLogin" class="login-wrapper">
+    <div class="login-box">
+      <h2>后台管理系统登录</h2>
+      <input v-model="loginForm.username" placeholder="用户名">
+      <input v-model="loginForm.password" type="password" placeholder="密码">
+      <button type="button" @click="login">登录</button>
+      <p style="color:#888;font-size:12px;">账号：admin / 123456</p>
+    </div>
   </div>
 
-  <!-- 右侧内容 -->
-  <div class="content">
+  <!-- 后台系统 -->
+  <div v-else class="layout">
 
-    <!-- 商品管理 -->
-    <div v-show="currentModule==='product'">
-      <h2>📦 商品库存管理</h2>
-      <button @click="loadProducts">查询商品</button>
-
-      <div class="edit-box">
-        商品名 <input v-model="newProduct.name">
-        价格 <input type="number" v-model="newProduct.price">
-        库存 <input type="number" v-model="newProduct.stock">
-        <button @click="addProduct">新增</button>
-      </div>
-
-      <table>
-        <tr>
-          <th>ID</th><th>名称</th><th>价格</th><th>库存</th><th>图片</th>
-        </tr>
-        <tr v-for="p in productPageData" :key="p.id">
-          <td>{{p.id}}</td>
-          <td>{{p.name}}</td>
-          <td>{{p.price}}</td>
-          <td>{{p.stock}}</td>
-          <td><img v-if="p.imageUrl" :src="p.imageUrl"></td>
-        </tr>
-      </table>
-
-      <div class="pagination">
-        <button :disabled="productPage===1" @click="productPage--">上一页</button>
-        第 {{productPage}} / {{productTotalPages}} 页
-        <button :disabled="productPage===productTotalPages" @click="productPage++">下一页</button>
-      </div>
+    <!-- 左侧菜单 -->
+    <div class="sidebar">
+      <div class="menu-title">后台管理</div>
+      <button @click="currentModule='product'">📦 商品管理</button>
+      <button @click="currentModule='order'">📄 订单管理</button>
+      <button @click="currentModule='stat'">📊 销售统计</button>
+      <button @click="currentModule='customer'">👤 客户管理</button>
+      <button @click="currentModule='log'">🧾 行为日志</button>
+      <button @click="logout">🚪 退出登录</button>
     </div>
 
-    <!-- 订单管理（分页已恢复） -->
-    <div v-show="currentModule==='order'">
-      <h2>📄 订单管理</h2>
-      <button @click="loadOrders">查询订单</button>
+    <!-- 右侧内容 -->
+    <div class="content">
 
-      <table>
-        <tr>
-          <th>ID</th><th>用户</th><th>金额</th><th>状态</th><th>时间</th>
-        </tr>
-        <tr v-for="o in orderPageData" :key="o.id">
-          <td>{{o.id}}</td>
-          <td>{{o.userId}}</td>
-          <td>{{o.totalPrice}}</td>
-          <td>{{o.status}}</td>
-          <td>{{formatDate(o.createdAt)}}</td>
-        </tr>
-      </table>
+      <!-- 商品管理 -->
 
-      <div class="pagination">
-        <button :disabled="orderPage===1" @click="orderPage--">上一页</button>
-        第 {{orderPage}} / {{orderTotalPages}} 页
-        <button :disabled="orderPage===orderTotalPages" @click="orderPage++">下一页</button>
+      <div v-show="currentModule==='product'">
+        <h2>📦 商品库存管理</h2>
+        <button @click="loadProducts">查询商品</button>
+
+        <div class="edit-box">
+          商品名 <input v-model="newProduct.name">
+          价格 <input type="number" v-model="newProduct.price">
+          库存 <input type="number" v-model="newProduct.stock">
+          图片 <input type="file" @change="handleImageChange">
+          <button @click="addProduct">新增</button>
+        </div>
+
+       <table>
+          <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>价格</th>
+            <th>库存</th>
+            <th>图片</th>
+            <th>操作</th>
+          </tr>
+
+          <tr v-for="p in productPageData" :key="p.id">
+            <td>{{ p.id }}</td>
+
+            <!-- 名称 -->
+            <td>
+              <input v-if="editProductId === p.id" v-model="editProduct.name">
+              <span v-else>{{ p.name }}</span>
+            </td>
+
+            <!-- 价格 -->
+            <td>
+              <input v-if="editProductId === p.id" type="number" v-model="editProduct.price">
+              <span v-else>{{ p.price }}</span>
+            </td>
+
+            <!-- 库存 -->
+            <td>
+              <input v-if="editProductId === p.id" type="number" v-model="editProduct.stock">
+              <span v-else>{{ p.stock }}</span>
+            </td>
+
+            <!-- 图片 -->
+            <td>
+              <img v-if="p.image" :src="p.image">
+            </td>
+
+            <!-- 操作按钮 -->
+            <td>
+              <button v-if="editProductId !== p.id" @click="startEdit(p)">修改</button>
+              <button v-if="editProductId !== p.id" @click="deleteProduct(p.id)">删除</button>
+
+              <button v-if="editProductId === p.id" @click="saveEdit">保存</button>
+              <button v-if="editProductId === p.id" @click="cancelEdit">取消</button>
+            </td>
+          </tr>
+        </table>
+
+
+        <div class="pagination">
+          <button :disabled="productPage===1" @click="productPage--">上一页</button>
+          第 {{productPage}} / {{productTotalPages}} 页
+          <button :disabled="productPage===productTotalPages" @click="productPage++">下一页</button>
+        </div>
       </div>
-    </div>
 
-    <!-- 销售统计 -->
-    <div v-show="currentModule==='stat'">
-      <h2>📊 销售统计</h2>
-      <button @click="loadStatistics">刷新统计</button>
-      <div class="box">
-        <div id="productPie" style="height:400px;"></div>
-        <div id="dailyLine" style="height:400px;margin-top:20px;"></div>
+      <!-- 订单管理 -->
+      <div v-show="currentModule==='order'">
+        <h2>📄 订单管理</h2>
+        <button @click="loadOrders">查询订单</button>
+
+        <table>
+          <tr>
+            <th>ID</th><th>用户</th><th>金额</th><th>状态</th><th>时间</th>
+          </tr>
+          <tr v-for="o in orderPageData" :key="o.id">
+            <td>{{o.id}}</td>
+            <td>{{o.userId}}</td>
+            <td>{{o.totalPrice}}</td>
+            <td>{{o.status}}</td>
+            <td>{{formatDate(o.createdAt)}}</td>
+          </tr>
+        </table>
+
+        <div class="pagination">
+          <button :disabled="orderPage===1" @click="orderPage--">上一页</button>
+          第 {{orderPage}} / {{orderTotalPages}} 页
+          <button :disabled="orderPage===orderTotalPages" @click="orderPage++">下一页</button>
+        </div>
       </div>
-    </div>
 
-    <!-- 客户管理（无分页，保持原样） -->
-    <div v-show="currentModule==='customer'">
-      <h2>👤 客户管理</h2>
-      <button @click="loadCustomers">查询客户</button>
-      <table>
-        <tr><th>ID</th><th>用户名</th><th>邮箱</th></tr>
-        <tr v-for="c in customers" :key="c.id">
-          <td>{{c.id}}</td>
-          <td>{{c.username}}</td>
-          <td>{{c.email}}</td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- 行为日志（分页已恢复） -->
-    <div v-show="currentModule==='log'">
-      <h2>🧾 客户行为日志</h2>
-      <button @click="loadLogs">查询日志</button>
-
-      <table>
-        <tr><th>ID</th><th>行为</th><th>商品</th><th>时间</th></tr>
-        <tr v-for="l in logPageData" :key="l.id">
-          <td>{{l.id}}</td>
-          <td>{{l.action}}</td>
-          <td>{{l.productId}}</td>
-          <td>{{formatDate(l.time)}}</td>
-        </tr>
-      </table>
-
-      <div class="pagination">
-        <button :disabled="logPage===1" @click="logPage--">上一页</button>
-        第 {{logPage}} / {{logTotalPages}} 页
-        <button :disabled="logPage===logTotalPages" @click="logPage++">下一页</button>
+      <!-- 销售统计 -->
+      <div v-show="currentModule==='stat'">
+        <h2>📊 销售统计</h2>
+        <button @click="loadStatistics">刷新统计</button>
+        <div class="box">
+          <div id="productPie" style="height:400px;"></div>
+          <div id="dailyLine" style="height:400px;margin-top:20px;"></div>
+        </div>
       </div>
-    </div>
 
+      <!-- 客户管理 -->
+      <div v-show="currentModule==='customer'">
+        <h2>👤 客户管理</h2>
+        <button @click="loadCustomers">查询客户</button>
+        <table>
+          <tr><th>ID</th><th>用户名</th><th>邮箱</th></tr>
+          <tr v-for="c in customers" :key="c.id">
+            <td>{{c.id}}</td>
+            <td>{{c.username}}</td>
+            <td>{{c.email}}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- 行为日志 -->
+      <div v-show="currentModule==='log'">
+        <h2>🧾 客户行为日志</h2>
+        <button @click="loadLogs">查询日志</button>
+
+        <table>
+          <tr><th>ID</th><th>行为</th><th>商品</th><th>时间</th></tr>
+          <tr v-for="l in logPageData" :key="l.id">
+            <td>{{l.id}}</td>
+            <td>{{l.action}}</td>
+            <td>{{l.productId}}</td>
+            <td>{{formatDate(l.time)}}</td>
+          </tr>
+        </table>
+
+        <div class="pagination">
+          <button :disabled="logPage===1" @click="logPage--">上一页</button>
+          第 {{logPage}} / {{logTotalPages}} 页
+          <button :disabled="logPage===logTotalPages" @click="logPage++">下一页</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -210,19 +295,24 @@
 const { createApp } = Vue
 createApp({
   data() {
-    return {
-      baseUrl: window.location.origin,
-      currentModule: 'product',
+  return {
+    baseUrl: window.location.origin,
 
-      products: [], productPage: 1, productPageSize: 5,
-      orders: [], orderPage: 1, orderPageSize: 5,
-      customers: [],
-      logs: [], logPage: 1, logPageSize: 5,
+    // 保证 isLogin 是布尔值
+    isLogin: localStorage.getItem('isLogin') === 'true' ? true : false,
 
-      productSales: [], dailySales: [],
-      newProduct: { name:'', price:null, stock:null }
-    }
-  },
+    loginForm: { username: '', password: '' },
+    currentModule: 'product',
+    products: [], productPage: 1, productPageSize: 5,
+    orders: [], orderPage: 1, orderPageSize: 5,
+    customers: [],
+    logs: [], logPage: 1, logPageSize: 5,
+    productSales: [], dailySales: [],
+    newProduct: { name:'', price:null, stock:null },
+    editProductId: null,
+    editProduct: { id: null, name: '', price: null, stock: null }
+  }
+},
 
   computed:{
     productTotalPages(){ return Math.ceil(this.products.length/this.productPageSize)||1 },
@@ -255,23 +345,73 @@ createApp({
   },
 
   methods:{
-      addProduct(){
-      if(!this.newProduct.name || this.newProduct.price==null || this.newProduct.stock==null){
-        alert('请填写完整商品信息')
-        return
+    login() {
+      console.log('点击了登录按钮')  // 验证事件是否触发
+      if (this.loginForm.username === 'admin' && this.loginForm.password === '123456') {
+        this.isLogin = true
+        localStorage.setItem('isLogin', 'true')
+      } else {
+        alert('用户名或密码错误')
       }
+    },
+    logout(){
+      this.isLogin = false
+      localStorage.removeItem('isLogin')
+      this.loginForm.username=''
+      this.loginForm.password=''
+    },
 
-      axios.post(this.baseUrl + '/api/products/add', this.newProduct)
+        // 开始编辑
+    startEdit(p) {
+      this.editProductId = p.id
+      this.editProduct = { ...p }   // 深拷贝一份
+    },
+
+    // 取消编辑
+    cancelEdit() {
+      this.editProductId = null
+      this.editProduct = { id:null, name:'', price:null, stock:null }
+    },
+
+    // 保存修改
+    saveEdit() {
+      axios.put(this.baseUrl + '/api/products/update', this.editProduct)
         .then(() => {
-          alert('新增成功')
-          this.newProduct = { name:'', price:null, stock:null }
+          alert('修改成功')
+          this.editProductId = null
           this.loadProducts()
-        })
-        .catch(() => {
-          alert('新增失败')
         })
     },
 
+    // 删除商品
+    deleteProduct(id) {
+      if (!confirm('确认删除该商品吗？')) return
+
+      axios.delete(this.baseUrl + '/api/products/delete/' + id)
+        .then(() => {
+          alert('删除成功')
+          this.loadProducts()
+        })
+    },
+
+    addProduct() {
+      const formData = new FormData()
+      formData.append('name', this.newProduct.name)
+      formData.append('price', this.newProduct.price)
+      formData.append('stock', this.newProduct.stock)
+
+      if (this.newProduct.imageFile) {
+        formData.append('image', this.newProduct.imageFile) // 后端字段 image
+      }
+
+      axios.post(this.baseUrl + '/api/products/add', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }).then(() => {
+        alert('新增成功')
+        this.loadProducts()
+        this.newProduct = { name:'', price:null, stock:null, imageFile:null }
+      })
+    },
     loadProducts(){
       axios.get(this.baseUrl+'/api/products/AllProducts')
         .then(r=>this.products=r.data.list||r.data)
@@ -298,17 +438,39 @@ createApp({
         .then(r=>{this.dailySales=r.data;this.renderDailyLine()})
     },
     renderProductPie(){
-      echarts.init(document.getElementById('productPie')).setOption({
-        series:[{type:'pie',radius:'60%',data:this.productSales.map(i=>({name:i.productName,value:i.count}))}]
-      })
+  echarts.init(document.getElementById('productPie')).setOption({
+    title: {
+      text: '各商品销量占比',  // 新增标题
+      left: 'center',
+      top: 10,
+      textStyle: { fontSize: 16 }
     },
+    tooltip: { trigger: 'item' },
+    series:[
+      {
+        type:'pie',
+        radius:'60%',
+        data:this.productSales.map(i=>({name:i.productName,value:i.count}))
+      }
+    ]
+  })
+},
+
     renderDailyLine(){
       echarts.init(document.getElementById('dailyLine')).setOption({
-        xAxis:{type:'category',data:this.dailySales.map(i=>i.date)},
-        yAxis:{type:'value'},
-        series:[{type:'line',smooth:true,data:this.dailySales.map(i=>i.total)}]
+        title: {
+          text: '每日销售额趋势',  // 新增标题
+          left: 'center',
+          top: 10,
+          textStyle: { fontSize: 16 }
+        },
+        tooltip: { trigger: 'axis' },
+        xAxis:{ type:'category', data:this.dailySales.map(i=>i.date) },
+        yAxis:{ type:'value' },
+        series:[{ type:'line', smooth:true, data:this.dailySales.map(i=>i.total) }]
       })
     },
+
     formatDate(t){
       return t?new Date(t).toLocaleString():''
     }

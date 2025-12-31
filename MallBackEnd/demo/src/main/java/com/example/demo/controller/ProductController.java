@@ -43,7 +43,7 @@ public class ProductController {
         return productService.getAllProducts();
     }
     // 删除商品
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProductById(id);
     }
@@ -59,4 +59,5 @@ public class ProductController {
         productService.addProduct(product);
         return "success";
     }
+
 }
