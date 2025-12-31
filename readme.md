@@ -2,6 +2,7 @@
 
 # Mall — Vue3 / Vite 电商管理与前端示例工程
 学号：202330451771 姓名：王伫源
+
 简介
 - 本仓库包含前端 (Vue 3 + TypeScript + Vite) 项目 `vue3-ecommerce`，以及后端示例工程 `MallBackEnd`（Spring Boot / Maven）。
 - 前端包含：Vue 3 (Composition API)、Pinia、Vue Router 4、Element Plus、Axios、ECharts（用于报表）、Mock（开发时可启用）。
