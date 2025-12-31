@@ -21,6 +21,8 @@
     - mock/                   — Mock 数据（开发可启用）
     - components/             — 可复用组件（分页、头尾、产品卡片等）
   - package.json
+- /Tob
+  - index.html                - b端页面
 - /MallBackEnd
   - demo/                    — 后端 Spring Boot 示例工程（pom.xml，若需本地运行）
 
